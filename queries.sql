@@ -43,7 +43,7 @@ order by average_income
 
 select 
 concat(first_name, ' ', last_name) as seller,  /*селектим имя продавца, день недели и суммарную выручку по дням недели*/
-to_char(sale_date, 'Day') as day_of_week,
+to_char(sale_date, 'day') as day_of_week,
 floor(sum(p.price * s.quantity)) as income
 from sales s
 inner join employees e
@@ -61,11 +61,7 @@ case
 	when age between 26 and 40 then '26–40'
 	when age > 40 then '40+'
 end as age_category,
-count(case 
-	when age between 16 and 25 then '16–25'
-	when age between 26 and 40 then '26–40'
-	when age > 40 then '40+'
-end) as age_count
+count(age) as age_count
 from customers c
 group by 1
 order by 1;
@@ -83,9 +79,11 @@ on s.product_id = p.product_id
 group by 1
 order by 1;
 
+with tab as (
 SELECT 
+distinct(c.customer_id),
 concat(c.first_name, ' ', c.last_name) AS customer,
-min(s.sale_date) AS sale_date,
+(select min(s.sale_date) from sales s inner join products p on s.product_id = p.product_id where p.price = 0) AS sale_date,
 concat(e.first_name, ' ', e.last_name) AS seller
 FROM sales s
 INNER JOIN customers c
@@ -95,7 +93,12 @@ on s.product_id = p.product_id
 inner join employees e 
 on s.sales_person_id = e.employee_id
 where p.price = 0
-group by concat(c.first_name, ' ', c.last_name), concat(e.first_name, ' ', e.last_name);
-
-
-
+group by concat(c.first_name, ' ', c.last_name), concat(e.first_name, ' ', e.last_name), s.sale_date, c.customer_id
+order by c.customer_id
+)
+select 
+customer,
+sale_date,
+seller
+from tab
+order by customer;
