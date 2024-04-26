@@ -55,14 +55,14 @@ order by extract(isodow from sale_date), seller;
 
 
 /*шаг 6*/
-select 
-case 
-	when age between 16 and 25 then '16–25'
-	when age between 26 and 40 then '26–40'
-	when age > 40 then '40+'
-end as age_category,
-count(age) as age_count
-from customers c
+select
+    case
+        when age between 16 and 25 then '16-25'
+        when age between 26 and 40 then '26-40'
+        when age > 40 then '40+'
+    end as age_category,
+    count(age) as age_count
+from customers
 group by 1
 order by 1;
 
@@ -80,25 +80,35 @@ group by 1
 order by 1;
 
 with tab as (
-SELECT 
-distinct(c.customer_id),
-concat(c.first_name, ' ', c.last_name) AS customer,
-(select min(s.sale_date) from sales s inner join products p on s.product_id = p.product_id where p.price = 0) AS sale_date,
-concat(e.first_name, ' ', e.last_name) AS seller
-FROM sales s
-INNER JOIN customers c
-on s.customer_id = c.customer_id 
-inner join products p
-on s.product_id = p.product_id 
-inner join employees e 
-on s.sales_person_id = e.employee_id
-where p.price = 0
-group by concat(c.first_name, ' ', c.last_name), concat(e.first_name, ' ', e.last_name), s.sale_date, c.customer_id
-order by c.customer_id
+    select distinct
+        c.customer_id,
+        concat(c.first_name, ' ', c.last_name) as customer,
+        (
+            select min(s.sale_date)
+            from sales as s
+            inner join products as p on s.product_id = p.product_id
+            where p.price = 0
+        ) as sale_date,
+        concat(e.first_name, ' ', e.last_name) as seller
+    from sales as s
+    inner join customers as c
+        on s.customer_id = c.customer_id
+    inner join products as p
+        on s.product_id = p.product_id
+    inner join employees as e
+        on s.sales_person_id = e.employee_id
+    where p.price = 0
+    group by
+        concat(c.first_name, ' ', c.last_name),
+        concat(e.first_name, ' ', e.last_name),
+        s.sale_date,
+        c.customer_id
+    order by c.customer_id
 )
-select 
-customer,
-sale_date,
-seller
+
+select
+    customer,
+    sale_date,
+    seller
 from tab
 order by customer;
