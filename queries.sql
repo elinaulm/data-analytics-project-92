@@ -66,8 +66,8 @@ select
     end as age_category,
     COUNT(age) as age_count
 from customers
-group by 1
-order by 1;
+group by age_category
+order by age_category;
 
 
 select
@@ -79,22 +79,22 @@ inner join customers as c
     on s.customer_id = c.customer_id
 inner join products as p
     on s.product_id = p.product_id
-group by 1
-order by 1;
+group by selling_month
+order by selling_month;
 
 
 with tab as (
     select
         id,
         customer,
-        min(sale_date) as sale_date
+        MIN(sale_date) as sale_date
     from (
         select
             p.price,
             --скрещиваем имя и фамилию покупателя
             c.customer_id as id,
             s.sale_date,
-            concat(c.first_name, ' ', c.last_name) as customer
+            CONCAT(c.first_name, ' ', c.last_name) as customer
         from sales as s
         inner join products as p
             on s.product_id = p.product_id --соединяем таблицы по id
@@ -102,19 +102,17 @@ with tab as (
             on s.customer_id = c.customer_id --соединяем таблицы по id
     ) as fool
     where price = 0 --выделяем только строки со значением цены 0
-    group by 1, 2 --группируем по id и customer
+    group by id, customer --группируем по id и customer
 )
 
 select
     tab.customer,
     tab.sale_date,
     --соединяем имя и фамилию сотрудника, выделяем самого первого
-    min(concat(e.first_name, ' ', e.last_name)) as seller
+    MIN(CONCAT(e.first_name, ' ', e.last_name)) as seller
 from tab
 inner join sales as s
     on tab.id = s.customer_id --соединяем таблицы по id
 inner join employees as e
     on s.sales_person_id = e.employee_id --соединяем по id
 group by tab.customer, tab.sale_date;
-
-
